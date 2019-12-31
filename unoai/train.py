@@ -7,11 +7,11 @@ from .imports import *
 
 # Cell
 def train_model_custom(train_ds: tf.data.Dataset, test_ds: tf.data.Dataset,
-                epochs: int, model_fn: Callable,
-                opt_fn: Callable, loss_fn: Callable, model: tf.keras.Model=None):
-
+                       epochs: int, opt: tf.keras.optimizers, loss_fn: Callable,
+                       callbacks: List[tf.keras.callbacks.Callback]=None,
+                       model_fn: Callable=None, model: tf.keras.Model=None):
+    assert model_fn is not None or model is not None, "Both model function and model cannot be None."
     if model is None: model = model_fn()
-    opt = opt_fn()
     # todo: standardize metrics
     train_loss = tf.keras.metrics.Mean(name='train_loss')
     train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
@@ -35,17 +35,24 @@ def train_model_custom(train_ds: tf.data.Dataset, test_ds: tf.data.Dataset,
         test_loss(t_loss)
         test_accuracy(labels, predictions)
 
+    if callbacks is not None: _ = [callback.on_train_begin() for callback in callbacks]
+
     for epoch in tqdm(range(epochs)):
         train_loss.reset_states()
         train_accuracy.reset_states()
         test_loss.reset_states()
         test_accuracy.reset_states()
 
-        for images, labels in train_ds:
-            train_step(images, labels)
+        if callbacks is not None: _ = [callback.on_epoch_begin(epoch) for callback in callbacks]
+        for step, inputs in enumerate(train_ds):
+            if callbacks is not None: _ = [callback.on_train_batch_begin(step) for callback in callbacks]
+            train_step(*inputs)
+            if callbacks is not None: _ = [callback.on_train_batch_end(step) for callback in callbacks]
 
-        for test_images, test_labels in test_ds:
-            test_step(test_images, test_labels)
+        if callbacks is not None: _ = [callback.on_epoch_end(epoch) for callback in callbacks]
+
+        for step, inputs in enumerate(test_ds):
+            test_step(*inputs)
 
         template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
         print(template.format(epoch+1,
