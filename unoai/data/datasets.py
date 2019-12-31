@@ -9,7 +9,7 @@ from ..vision.augmentations import *
 
 # Cell
 def get_cifar10(ds_dir: str, batch_size: int = None,
-                normalize: bool = False, padding: int = None, augmentation: None):
+                normalize: bool = False, padding: int = None, augmentation: str = None):
     if not os.path.exists(ds_dir):
         os.makedirs(ds_dir)
 
