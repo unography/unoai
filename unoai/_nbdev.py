@@ -8,6 +8,7 @@ index = {"get_tf_example_from_raw_img": "01_data.load.ipynb",
          "parse_tf_example_img": "01_data.load.ipynb",
          "read_tfrecord_as_dataset": "01_data.load.ipynb",
          "get_cifar10": "02_data.datasets.ipynb",
+         "train_model_custom": "03_train.ipynb",
          "train_model": "03_train.ipynb"}
 
 modules = ["data/load.py",
