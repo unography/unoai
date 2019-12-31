@@ -5,9 +5,11 @@ __all__ = ['get_cifar10']
 # Cell
 from ..imports import *
 from .load import *
+from ..vision.augmentations import *
 
 # Cell
-def get_cifar10(ds_dir: str, batch_size: int = None, normalize: bool = False, padding: int = None):
+def get_cifar10(ds_dir: str, batch_size: int = None,
+                normalize: bool = False, padding: int = None, augmentation: None):
     if not os.path.exists(ds_dir):
         os.makedirs(ds_dir)
 
@@ -17,6 +19,8 @@ def get_cifar10(ds_dir: str, batch_size: int = None, normalize: bool = False, pa
         fname_base += "-normalized"
     if padding is not None:
         fname_base += f"-{padding}-pad"
+    if augmentation is not None:
+        fname_base += f"-{augmentation}-aug"
 
     train_path = os.path.join(ds_dir, f"{fname_base}.train.tfrecords")
     test_path = os.path.join(ds_dir, f"{fname_base}.test.tfrecords")
@@ -29,6 +33,8 @@ def get_cifar10(ds_dir: str, batch_size: int = None, normalize: bool = False, pa
         x, y = parse_tf_example_img(tf_example, train_img_sz[0], train_img_sz[1])
         if padding is not None:
             x = tf.image.random_flip_left_right(tf.image.random_crop(x, [img_sz[0], img_sz[1], 3]))
+        if augmentation and augmentation == 'cutout':
+            x = cutout(x,h=8,w=8)
         return x, y
 
     def parser_test(tf_example):
